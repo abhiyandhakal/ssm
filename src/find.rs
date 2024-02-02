@@ -44,7 +44,7 @@ impl Find {
         command
     }
 
-    pub fn get_directory(flags: Vec<(CommandEnum, CommandType)>) -> Result<()> {
+    pub fn get_directory(flags: Vec<(CommandEnum, CommandType)>) -> Result<String> {
         let find_flags: Vec<_> = flags
             .iter()
             .filter(|(_, t)| t == &CommandType::Find)
@@ -90,6 +90,8 @@ impl Find {
             }
         }
 
-        Ok(())
+        let output = output.trim();
+
+        Ok(output.to_string())
     }
 }
