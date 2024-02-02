@@ -1,15 +1,23 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CommandType {
+    Fzf,
+    Other,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CommandEnum {
     Fzf,
     Help,
-    FdShowHidden,
+    FzfShowHidden,
     Directory,
+    Find,
 }
 
 #[derive(Debug, Clone)]
 pub struct CommandArgs {
     command: CommandEnum,
     args: Vec<String>,
+    command_type: CommandType,
 }
 
 pub struct Commands;
@@ -20,27 +28,36 @@ impl Commands {
             CommandArgs {
                 command: CommandEnum::Fzf,
                 args: vec!["--fzf".to_string(), "-z".to_string()],
+                command_type: CommandType::Fzf,
             },
             CommandArgs {
                 command: CommandEnum::Help,
                 args: vec!["--help".to_string(), "-h".to_string()],
+                command_type: CommandType::Other,
             },
             CommandArgs {
-                command: CommandEnum::FdShowHidden,
+                command: CommandEnum::FzfShowHidden,
                 args: vec![
                     "--show-hidden".to_string(),
                     "-s".to_string(),
                     "--hidden".to_string(),
                 ],
+                command_type: CommandType::Fzf,
             },
             CommandArgs {
                 command: CommandEnum::Directory,
                 args: vec!["--directory".to_string(), "-d".to_string()],
+                command_type: CommandType::Other,
+            },
+            CommandArgs {
+                command: CommandEnum::Find,
+                args: vec!["--find".to_string(), "-f".to_string()],
+                command_type: CommandType::Fzf,
             },
         ]
     }
 
-    pub fn get_commands_in_args() -> Vec<CommandEnum> {
+    pub fn get_commands_in_args() -> Vec<(CommandEnum, CommandType)> {
         let args = std::env::args().collect::<Vec<String>>();
         let all_commands = Commands::all_commands();
 
@@ -49,13 +66,13 @@ impl Commands {
         for arg in &args {
             for command in &all_commands {
                 if command.args.contains(arg) {
-                    commands.push(command.command);
+                    commands.push((command.command, command.command_type));
                 }
             }
         }
 
         if commands.is_empty() {
-            commands.push(CommandEnum::Fzf);
+            commands.push((CommandEnum::Fzf, CommandType::Fzf));
         }
 
         commands
