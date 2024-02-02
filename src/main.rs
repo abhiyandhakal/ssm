@@ -9,6 +9,6 @@ fn main() {
     let commands_in_args = Commands::get_commands_in_args();
 
     if commands_in_args.contains(&(CommandEnum::Fzf, CommandType::Find)) {
-        Find::get_directory(commands_in_args);
+        let _ = Find::get_directory(commands_in_args);
     }
 }
