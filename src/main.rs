@@ -9,10 +9,6 @@ fn main() {
     let commands_in_args = Commands::get_commands_in_args();
 
     if commands_in_args.contains(&(CommandEnum::Fzf, CommandType::Find)) {
-        Find::get_directory(CommandEnum::Fzf, commands_in_args);
-    } else if commands_in_args.contains(&(CommandEnum::ShowHidden, CommandType::Find)) {
-        Find::get_directory(CommandEnum::ShowHidden, commands_in_args);
-    } else {
-        println!("No command found");
+        Find::get_directory(commands_in_args);
     }
 }

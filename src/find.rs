@@ -7,7 +7,7 @@ use std::process::{Command, Stdio};
 pub struct Find;
 
 impl Find {
-    fn find_command(operation_type: CommandEnum, find_flags: Vec<CommandEnum>) -> String {
+    fn find_command(find_flags: Vec<CommandEnum>) -> String {
         let home_dir = match dirs::home_dir() {
             Some(dir) => dir,
             None => PathBuf::from("."),
@@ -15,7 +15,7 @@ impl Find {
 
         let mut command = format!("find {} -type d", home_dir.to_str().unwrap_or(".")).to_string();
 
-        if operation_type == CommandEnum::ShowHidden {
+        if find_flags.contains(&CommandEnum::ShowHidden) {
             command.push_str(" -name '.*'");
         } else {
             // ignore hidden directories
@@ -25,8 +25,8 @@ impl Find {
         command
     }
 
-    pub fn get_directory(operation_type: CommandEnum, flags: Vec<(CommandEnum, CommandType)>) {
-        let fzf_flags: Vec<_> = flags
+    pub fn get_directory(flags: Vec<(CommandEnum, CommandType)>) {
+        let find_flags: Vec<_> = flags
             .iter()
             .filter(|(_, t)| t == &CommandType::Find)
             .collect::<Vec<&(CommandEnum, CommandType)>>()
@@ -40,7 +40,7 @@ impl Find {
         };
 
         let command = if flags.contains(&(CommandEnum::Find, CommandType::Find)) || !fd_exists {
-            Self::find_command(operation_type, fzf_flags)
+            Self::find_command(find_flags)
         } else {
             "".to_string()
         };

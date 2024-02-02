@@ -68,6 +68,12 @@ impl Commands {
                 if command.args.contains(arg) {
                     commands.push((command.command, command.command_type));
                 }
+
+                if !commands.contains(&(CommandEnum::Fzf, CommandType::Find))
+                    && command.command_type == CommandType::Find
+                {
+                    commands.push((CommandEnum::Fzf, CommandType::Find));
+                }
             }
         }
 
