@@ -40,6 +40,7 @@ impl Commands {
                 args: vec![
                     "--show-hidden".to_string(),
                     "-s".to_string(),
+                    "-H".to_string(),
                     "--hidden".to_string(),
                 ],
                 command_type: CommandType::Find,
