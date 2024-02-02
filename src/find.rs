@@ -1,7 +1,7 @@
 use crate::commands::{CommandEnum, CommandType};
 use std::io::{Read, Result};
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::{self, Command, Stdio};
 
 #[derive(Debug)]
 pub struct Find;
@@ -73,7 +73,7 @@ impl Find {
 
         let status = child.wait()?;
         if !status.success() {
-            return Err(std::io::Error::from_raw_os_error(status.code().unwrap()));
+            process::exit(status.code().unwrap_or(1));
         }
 
         let mut output = String::new();
@@ -84,7 +84,10 @@ impl Find {
                     .read_to_string(&mut output)
                     .map_err(|e| e.to_string());
             }
-            None => panic!("No output"),
+            None => {
+                eprintln!("No output from fzf");
+                process::exit(1);
+            }
         }
 
         Ok(())
