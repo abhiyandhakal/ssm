@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CommandType {
-    Fzf,
+    Find,
     Other,
 }
 
@@ -8,7 +8,7 @@ pub enum CommandType {
 pub enum CommandEnum {
     Fzf,
     Help,
-    FzfShowHidden,
+    ShowHidden,
     Directory,
     Find,
 }
@@ -28,7 +28,7 @@ impl Commands {
             CommandArgs {
                 command: CommandEnum::Fzf,
                 args: vec!["--fzf".to_string(), "-z".to_string()],
-                command_type: CommandType::Fzf,
+                command_type: CommandType::Find,
             },
             CommandArgs {
                 command: CommandEnum::Help,
@@ -36,13 +36,13 @@ impl Commands {
                 command_type: CommandType::Other,
             },
             CommandArgs {
-                command: CommandEnum::FzfShowHidden,
+                command: CommandEnum::ShowHidden,
                 args: vec![
                     "--show-hidden".to_string(),
                     "-s".to_string(),
                     "--hidden".to_string(),
                 ],
-                command_type: CommandType::Fzf,
+                command_type: CommandType::Find,
             },
             CommandArgs {
                 command: CommandEnum::Directory,
@@ -52,7 +52,7 @@ impl Commands {
             CommandArgs {
                 command: CommandEnum::Find,
                 args: vec!["--find".to_string(), "-f".to_string()],
-                command_type: CommandType::Fzf,
+                command_type: CommandType::Find,
             },
         ]
     }
@@ -72,7 +72,7 @@ impl Commands {
         }
 
         if commands.is_empty() {
-            commands.push((CommandEnum::Fzf, CommandType::Fzf));
+            commands.push((CommandEnum::Fzf, CommandType::Find));
         }
 
         commands
