@@ -1,6 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CommandType {
     Find,
+    Alias,
     Other,
 }
 
@@ -11,6 +12,7 @@ pub enum CommandEnum {
     ShowHidden,
     Directory,
     Find,
+    SetAlias,
 }
 
 #[derive(Debug, Clone)]
@@ -55,6 +57,11 @@ impl Commands {
                 args: vec!["--find".to_string(), "-f".to_string()],
                 command_type: CommandType::Find,
             },
+            CommandArgs {
+                command: CommandEnum::SetAlias,
+                args: vec!["--alias".to_string(), "-a".to_string()],
+                command_type: CommandType::Alias,
+            },
         ]
     }
 
@@ -68,12 +75,12 @@ impl Commands {
             for command in &all_commands {
                 if command.args.contains(arg) {
                     commands.push((command.command, command.command_type));
-                }
 
-                if !commands.contains(&(CommandEnum::Fzf, CommandType::Find))
-                    && command.command_type == CommandType::Find
-                {
-                    commands.push((CommandEnum::Fzf, CommandType::Find));
+                    if !commands.contains(&(CommandEnum::Fzf, CommandType::Find))
+                        && command.command_type == CommandType::Find
+                    {
+                        commands.push((CommandEnum::Fzf, CommandType::Find));
+                    }
                 }
             }
         }
