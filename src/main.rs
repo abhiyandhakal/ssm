@@ -19,7 +19,12 @@ fn main() -> Result<()> {
     }?;
 
     // go to tmux session
-    tmux::goto_session(&directory);
+    match tmux::goto_session(&directory) {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("{}", e);
+        }
+    };
 
     Ok(())
 }
