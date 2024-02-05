@@ -17,9 +17,9 @@ pub enum CommandEnum {
 
 #[derive(Debug, Clone)]
 pub struct CommandArgs {
-    command: CommandEnum,
-    args: Vec<String>,
-    command_type: CommandType,
+    pub command: CommandEnum,
+    pub args: Vec<String>,
+    pub command_type: CommandType,
 }
 
 pub struct Commands;
@@ -63,6 +63,14 @@ impl Commands {
                 command_type: CommandType::Alias,
             },
         ]
+    }
+
+    pub fn get_command_by_enum(command: CommandEnum) -> Option<CommandArgs> {
+        let all_commands = Commands::all_commands();
+
+        let command = all_commands.iter().find(|c| c.command == command);
+
+        Some(command.cloned()).unwrap_or(None)
     }
 
     pub fn get_commands_in_args() -> Vec<(CommandEnum, CommandType)> {
