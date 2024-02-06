@@ -42,7 +42,12 @@ fn main() -> Result<()> {
         .find(|(c, _)| *c == CommandEnum::SetAlias);
 
     if is_set_alias.is_some() {
-        alias::set_alias();
+        match alias::set_alias() {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("{}", e);
+            }
+        };
     }
 
     Ok(())

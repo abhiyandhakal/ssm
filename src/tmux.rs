@@ -1,7 +1,20 @@
 use std::{
     io::Result,
+    path::PathBuf,
     process::{self, Command, Stdio},
 };
+
+pub fn get_tmux_start_dir() -> Result<PathBuf> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("tmux display-message -p -F '#{pane_current_path}'")
+        .output()?;
+
+    let output = String::from_utf8_lossy(&output.stdout);
+    let output = output.trim();
+
+    Ok(PathBuf::from(output))
+}
 
 fn get_tmux_sessions() -> (Vec<String>, bool) {
     let output = Command::new("tmux")
