@@ -32,7 +32,7 @@ fn get_tmux_sessions() -> (Vec<String>, bool) {
 }
 
 pub fn goto_session(dirpath: &String) -> Result<()> {
-    let replacable = vec!["."];
+    let replacable = vec![".", ":"];
 
     let session_name = dirpath
         .chars()
@@ -56,12 +56,12 @@ pub fn goto_session(dirpath: &String) -> Result<()> {
         let output = if is_already_open {
             Command::new("sh")
                 .arg("-c")
-                .arg(format!("tmux switch-client -t {}", session_name))
+                .arg(format!("tmux switch-client -t \"{}\"", session_name))
                 .output()
         } else if !is_already_open {
             Command::new("sh")
             .arg("-c")
-            .arg(format!("tmux new -s {session_name} -c {session_name} -d && tmux switch-client -t {session_name}"))
+            .arg(format!("tmux new -s \"{session_name}\" -c \"{session_name}\" -d && tmux switch-client -t \"{session_name}\""))
             .output()
         } else {
             unreachable!()
@@ -74,13 +74,15 @@ pub fn goto_session(dirpath: &String) -> Result<()> {
         let mut child = if is_already_open {
             Command::new("sh")
                 .arg("-c")
-                .arg(format!("tmux attach -t {session_name}"))
+                .arg(format!("tmux attach -t \"{session_name}\""))
                 .stdout(Stdio::inherit())
                 .spawn()
         } else {
             Command::new("sh")
                 .arg("-c")
-                .arg(format!("tmux new -s {session_name} -c {session_name}"))
+                .arg(format!(
+                    "tmux new -s \"{session_name}\" -c \"{session_name}\""
+                ))
                 .stdout(Stdio::inherit())
                 .spawn()
         }?;
