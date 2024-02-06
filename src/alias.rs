@@ -8,7 +8,34 @@ use serde_yaml::{to_string, Value};
 
 use crate::tmux::get_tmux_start_dir;
 
-pub fn get_alias() {}
+#[derive(Debug)]
+pub struct Alias {
+    pub key: String,
+    pub value: String,
+}
+
+pub fn get_aliases() -> std::io::Result<Vec<Alias>> {
+    let alias_config = get_alias_config()?;
+
+    let mut aliases = Vec::new();
+
+    if let Value::Mapping(map) = alias_config {
+        for (k, v) in &map {
+            if let Value::String(key) = k {
+                if let Value::String(value) = v {
+                    aliases.push(Alias {
+                        key: key.to_string(),
+                        value: value.to_string(),
+                    })
+                }
+            }
+        }
+    }
+
+    println!("{:?}", aliases);
+
+    Ok(aliases)
+}
 
 fn get_alias_config_file() -> std::io::Result<File> {
     if config_dir().is_none() {
@@ -162,8 +189,6 @@ pub fn set_alias() -> std::io::Result<()> {
             std::process::exit(1);
         }
     };
-
-    println!("{alias_config_str}");
 
     alias_config_file.write_all(alias_config_str.as_bytes())?;
 
