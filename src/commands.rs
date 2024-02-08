@@ -60,23 +60,36 @@ impl Commands {
             },
             CommandArgs {
                 command: CommandEnum::SetAlias,
-                args: vec!["--set-alias".to_string(), "-a".to_string()],
+                args: vec!["--alias".to_string(), "-a".to_string()],
                 command_type: CommandType::Alias,
             },
             CommandArgs {
-                command: CommandEnum::Alias,
-                args: vec!["alias".to_string()],
+                command: CommandEnum::SetAlias,
+                args: vec!["--alias".to_string(), "-a".to_string()],
                 command_type: CommandType::Find,
             },
         ]
     }
 
-    pub fn get_command_by_enum(command: CommandEnum) -> Option<CommandArgs> {
+    pub fn get_commandargs_by_enum(command: CommandEnum) -> Option<CommandArgs> {
         let all_commands = Commands::all_commands();
 
         let command = all_commands.iter().find(|c| c.command == command);
 
         Some(command.cloned()).unwrap_or(None)
+    }
+
+    pub fn get_enum_type_combo(command: CommandEnum) -> Option<(CommandEnum, CommandType)> {
+        let all_commands = Commands::all_commands();
+        let command = all_commands.iter().find(|c| c.command == command);
+
+        if let None = command {
+            return None;
+        }
+        let command = command.unwrap();
+
+        let combo = (command.command, command.command_type);
+        Some(combo)
     }
 
     pub fn get_commands_in_args() -> Vec<(CommandEnum, CommandType)> {

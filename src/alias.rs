@@ -84,7 +84,8 @@ fn get_alias_config() -> std::io::Result<Value> {
 
 fn get_alias_from_args() -> String {
     let args = std::env::args().collect::<Vec<String>>();
-    let command_args = crate::Commands::get_command_by_enum(crate::commands::CommandEnum::SetAlias);
+    let command_args =
+        crate::Commands::get_commandargs_by_enum(crate::commands::CommandEnum::SetAlias);
 
     if command_args.is_none() {
         eprintln!("No command found");

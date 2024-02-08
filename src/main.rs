@@ -19,7 +19,14 @@ fn main() -> Result<()> {
 
     // get directory
     if is_find.is_some() {
-        let directory = if commands_in_args.contains(&(CommandEnum::Fzf, CommandType::Find)) {
+        let fzf_combo = match Commands::get_enum_type_combo(CommandEnum::Fzf) {
+            Some(c) => c,
+            None => {
+                eprintln!("Command combination not found. Please report this issue");
+                std::process::exit(1);
+            }
+        };
+        let directory = if commands_in_args.contains(&fzf_combo) {
             Find::get_directory(commands_in_args)
         } else {
             unimplemented!();
