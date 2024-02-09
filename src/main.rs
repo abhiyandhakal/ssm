@@ -1,7 +1,9 @@
 mod alias;
 mod commands;
 mod find;
+mod session;
 mod tmux;
+
 use std::io::Result;
 
 use commands::{CommandEnum, CommandType};
@@ -11,6 +13,15 @@ use crate::commands::Commands;
 
 fn main() -> Result<()> {
     let commands_in_args = Commands::get_commands_in_args();
+
+    // check if save
+    let is_save = commands_in_args
+        .iter()
+        .find(|(_, c)| *c == CommandType::Other);
+
+    if is_save.is_some() {
+        session::save_session()?;
+    }
 
     // related to find
     let is_find = commands_in_args

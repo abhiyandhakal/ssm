@@ -4,6 +4,18 @@ use std::{
     process::{self, Command, Stdio},
 };
 
+pub fn get_current_session() -> Result<String> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("tmux display-message -p -F '#{session_name}'")
+        .output()?;
+
+    let output = String::from_utf8_lossy(&output.stdout);
+    let output = output.trim();
+
+    Ok(output.to_string())
+}
+
 pub fn get_tmux_start_dir() -> Result<PathBuf> {
     let output = Command::new("sh")
         .arg("-c")

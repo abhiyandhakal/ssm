@@ -42,7 +42,7 @@ fn get_alias_config_file() -> std::io::Result<File> {
         eprintln!("No config dir found");
         std::process::exit(1);
     }
-    let config_dir = config_dir().unwrap().join("tsm");
+    let config_dir = config_dir().unwrap().join("ssm");
     if !config_dir.exists() {
         std::fs::create_dir_all(&config_dir)?;
     }

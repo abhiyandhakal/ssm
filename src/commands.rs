@@ -10,6 +10,7 @@ pub enum CommandEnum {
     Fzf,
     Help,
     Alias,
+    Save,
     ShowHidden,
     Directory,
     Find,
@@ -42,7 +43,6 @@ impl Commands {
                 command: CommandEnum::ShowHidden,
                 args: vec![
                     "--show-hidden".to_string(),
-                    "-s".to_string(),
                     "-H".to_string(),
                     "--hidden".to_string(),
                 ],
@@ -64,9 +64,9 @@ impl Commands {
                 command_type: CommandType::Alias,
             },
             CommandArgs {
-                command: CommandEnum::SetAlias,
-                args: vec!["--alias".to_string(), "-a".to_string()],
-                command_type: CommandType::Find,
+                command: CommandEnum::Save,
+                args: vec!["--save".to_string(), "-s".to_string()],
+                command_type: CommandType::Other,
             },
         ]
     }
