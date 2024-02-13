@@ -23,6 +23,7 @@ struct Pane {
 struct Window {
     index: i32,
     active: bool,
+    size: String,
     panes: Vec<Pane>,
 }
 
@@ -34,7 +35,7 @@ struct Session {
 }
 
 impl Session {
-    fn get_windows(session_name: &String) -> Result<()> {
+    fn get_windows(session_name: &String) -> Result<Vec<Window>> {
         let output = Command::new("tmux")
             .arg("list-windows")
             .arg("-t")
@@ -42,13 +43,43 @@ impl Session {
             .output()?;
         let output = String::from_utf8_lossy(&output.stdout);
         let output = output.trim();
-        println!("{}", output);
+        let mut windows: Vec<Window> = vec![];
 
-        Ok(())
+        for line in output.lines() {
+            let line = line.trim();
+            let line = line.split_whitespace().collect::<Vec<_>>();
+
+            // let index
+            let index = line[0].split(":").collect::<Vec<_>>()[0]
+                .parse::<i32>()
+                .unwrap_or_else(|_| {
+                    eprintln!("Failed to parse window index");
+                    std::process::exit(1);
+                });
+            // active window
+            let active = line[1].contains("*");
+            // let size
+            let mut chars = line[4].chars();
+            chars.next();
+            chars.next_back();
+            let size = chars.as_str().to_string();
+
+            windows.push(Window {
+                index,
+                active,
+                size,
+                panes: vec![],
+            });
+        }
+
+        dbg!(&windows);
+
+        Ok(windows)
     }
 
     fn new(session_name: &String) -> Result<Session> {
         let start_dir = get_tmux_start_dir()?.to_string_lossy().to_string();
+        let _windows = Self::get_windows(session_name)?;
 
         Ok(Session {
             name: session_name.to_string(),
@@ -78,12 +109,10 @@ pub fn save_session() -> Result<()> {
         eprintln!("Failed to serialize session");
         std::process::exit(1);
     });
-    let session: Value = serde_yaml::from_str(session.as_str()).unwrap_or_else(|_| {
+    let _session: Value = serde_yaml::from_str(session.as_str()).unwrap_or_else(|_| {
         eprintln!("Failed to deserialize session");
         std::process::exit(1);
     });
-
-    dbg!(session);
 
     Ok(())
 }
