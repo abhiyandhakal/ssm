@@ -4,7 +4,11 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value;
-use std::{io::Result, process::Command};
+use std::{
+    fs::{File, OpenOptions},
+    io::{Read, Result, Write},
+    process::Command,
+};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Point {
@@ -48,7 +52,6 @@ impl Session {
 
         let output = String::from_utf8_lossy(&output.stdout);
         let output = output.trim();
-        println!("{}", output);
         let mut panes: Vec<Pane> = vec![];
 
         for line in output.lines() {
@@ -125,26 +128,60 @@ impl Session {
             });
         }
 
-        dbg!(&windows);
-
         Ok(windows)
     }
 
     fn new(session_name: &String) -> Result<Session> {
         let start_dir = get_tmux_start_dir()?.to_string_lossy().to_string();
-        let _windows = Self::get_windows(session_name)?;
-
         Ok(Session {
             name: session_name.to_string(),
             start_dir,
-            windows: Vec::new(),
+            windows: Self::get_windows(session_name)?,
         })
     }
 }
 
+fn check_session_exists(
+    state_dir: &std::path::PathBuf,
+    session_name: &String,
+) -> Result<Option<String>> {
+    let files = std::fs::read_dir(&state_dir)?;
+    for file in files {
+        let file = file?;
+        let path = file.path();
+
+        // check if file is a file
+        if !file.file_type()?.is_file() {
+            continue;
+        }
+
+        // check if file is a yaml file
+        let ext = path.extension().unwrap_or_default();
+        if ext != "yaml" && ext != "yml" {
+            continue;
+        }
+        let mut file = OpenOptions::new().read(true).open(&path)?;
+        let mut buffer = String::new();
+        file.read_to_string(&mut buffer)?;
+
+        let buffer: Value = serde_yaml::from_str(buffer.as_str()).unwrap_or_else(|_| {
+            eprintln!("Failed to deserialize session");
+            std::process::exit(1);
+        });
+
+        if buffer["name"] == *session_name {
+            let filename = path.file_name().unwrap_or_default();
+            let filename = filename.to_string_lossy().to_string();
+            return Ok(Some(filename));
+        }
+    }
+
+    Ok(None)
+}
+
 pub fn save_session() -> Result<()> {
     let platform = std::env::consts::OS;
-    let _state_dir = match match platform {
+    let state_dir = match match platform {
         "linux" => dirs::state_dir(),
         _ => dirs::cache_dir(),
     } {
@@ -154,7 +191,8 @@ pub fn save_session() -> Result<()> {
             std::process::exit(1);
         }
     }
-    .join("ssm");
+    .join("ssm")
+    .join("sessions");
 
     let session_name = get_current_session()?;
     let session = Session::new(&session_name)?;
@@ -166,6 +204,21 @@ pub fn save_session() -> Result<()> {
         eprintln!("Failed to deserialize session");
         std::process::exit(1);
     });
+
+    let _ = std::fs::create_dir_all(&state_dir);
+
+    // check if session exists
+    let session_exists = check_session_exists(&state_dir, &session_name)?;
+    if let Some(file_name) = session_exists {
+        let file = state_dir.join(file_name);
+        let mut file = OpenOptions::new().write(true).open(&file)?;
+        file.write_all(session.as_bytes())?;
+        return Ok(());
+    }
+    let unique_id = uuid::Uuid::new_v4();
+    let file = state_dir.join(format!("{unique_id}.yaml"));
+    let mut file = OpenOptions::new().write(true).create(true).open(&file)?;
+    file.write_all(session.as_bytes())?;
 
     Ok(())
 }
