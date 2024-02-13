@@ -1,4 +1,7 @@
-use crate::tmux::{get_current_session, get_tmux_start_dir};
+use crate::{
+    tmux::{get_current_session, get_tmux_start_dir},
+    utils::remove_first_and_last,
+};
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value;
 use std::{io::Result, process::Command};
@@ -16,7 +19,6 @@ struct Pane {
     command: String,
     working_dir: String,
     size: String,
-    algorithm: String,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -35,6 +37,60 @@ struct Session {
 }
 
 impl Session {
+    fn get_panes(session_name: &String, window_index: i32) -> Result<Vec<Pane>> {
+        let output = Command::new("tmux")
+            .arg("list-panes")
+            .arg("-F")
+            .arg("#{pane_index} #{pane_width}x#{pane_height} #{pane_pid} #{pane_current_command} #{pane_current_path} #{?pane_active,(active),}")
+            .arg("-t")
+            .arg(format!("{}:{}", session_name, window_index))
+            .output()?;
+
+        let output = String::from_utf8_lossy(&output.stdout);
+        let output = output.trim();
+        println!("{}", output);
+        let mut panes: Vec<Pane> = vec![];
+
+        for line in output.lines() {
+            let line = line.trim();
+            let line = line.split_whitespace().collect::<Vec<_>>();
+            // let index
+            let index = line[0].parse::<i32>().unwrap_or_else(|_| {
+                eprintln!("Failed to parse pane index");
+                std::process::exit(1);
+            });
+            // let command
+            let output = Command::new("ps")
+                .arg("-o")
+                .arg("pid=")
+                .arg(line[2])
+                .output()?;
+            let command_pid = String::from_utf8_lossy(&output.stdout);
+            let command_pid = command_pid.trim();
+            let output = Command::new("ps")
+                .arg("-o")
+                .arg("command")
+                .arg("-p")
+                .arg(command_pid)
+                .output()?;
+            let command = String::from_utf8_lossy(&output.stdout);
+            let command = command.trim().lines().next().unwrap_or_else(|| {
+                eprintln!("Failed to get command");
+                std::process::exit(1);
+            });
+
+            panes.push(Pane {
+                index,
+                active: line.last().is_some_and(|f| f == &"(active)"),
+                size: line[1].to_string(),
+                command: command.to_string(),
+                working_dir: line[4].to_string(),
+            })
+        }
+
+        Ok(panes)
+    }
+
     fn get_windows(session_name: &String) -> Result<Vec<Window>> {
         let output = Command::new("tmux")
             .arg("list-windows")
@@ -59,16 +115,13 @@ impl Session {
             // active window
             let active = line[1].contains("*");
             // let size
-            let mut chars = line[4].chars();
-            chars.next();
-            chars.next_back();
-            let size = chars.as_str().to_string();
+            let size = remove_first_and_last(line[4]);
 
             windows.push(Window {
                 index,
                 active,
                 size,
-                panes: vec![],
+                panes: Self::get_panes(session_name, index)?,
             });
         }
 

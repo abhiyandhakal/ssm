@@ -3,6 +3,7 @@ mod commands;
 mod find;
 mod session;
 mod tmux;
+mod utils;
 
 use std::io::Result;
 
