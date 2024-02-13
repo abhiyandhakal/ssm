@@ -66,6 +66,7 @@ impl Session {
             let output = Command::new("ps")
                 .arg("-o")
                 .arg("pid=")
+                .arg("--ppid")
                 .arg(line[2])
                 .output()?;
             let command_pid = String::from_utf8_lossy(&output.stdout);
@@ -77,10 +78,8 @@ impl Session {
                 .arg(command_pid)
                 .output()?;
             let command = String::from_utf8_lossy(&output.stdout);
-            let command = command.trim().lines().next().unwrap_or_else(|| {
-                eprintln!("Failed to get command");
-                std::process::exit(1);
-            });
+            let command = command.trim().split('\n').collect::<Vec<_>>();
+            let command = command[command.len() - 1];
 
             panes.push(Pane {
                 index,
@@ -141,7 +140,7 @@ impl Session {
     }
 }
 
-fn check_session_exists(
+fn check_session_exists_in_state(
     state_dir: &std::path::PathBuf,
     session_name: &String,
 ) -> Result<Option<String>> {
@@ -181,6 +180,7 @@ fn check_session_exists(
 
 pub fn save_session() -> Result<()> {
     let platform = std::env::consts::OS;
+    let args: Vec<String> = std::env::args().collect();
     let state_dir = match match platform {
         "linux" => dirs::state_dir(),
         _ => dirs::cache_dir(),
@@ -194,25 +194,38 @@ pub fn save_session() -> Result<()> {
     .join("ssm")
     .join("sessions");
 
-    let session_name = get_current_session()?;
+    let session_name = if args.len() > 2 {
+        args[2].to_string()
+    } else {
+        get_current_session()?
+    };
+
+    // check if session exists to save
+    let output = Command::new("tmux")
+        .arg("has-session")
+        .arg("-t")
+        .arg(&session_name)
+        .output()?;
+    if !output.status.success() {
+        eprintln!("Session does not exist");
+        std::process::exit(1);
+    }
+
     let session = Session::new(&session_name)?;
     let session = serde_yaml::to_string(&session).unwrap_or_else(|_| {
         eprintln!("Failed to serialize session");
         std::process::exit(1);
     });
-    let _session: Value = serde_yaml::from_str(session.as_str()).unwrap_or_else(|_| {
-        eprintln!("Failed to deserialize session");
-        std::process::exit(1);
-    });
-
-    let _ = std::fs::create_dir_all(&state_dir);
+    std::fs::create_dir_all(&state_dir)?;
 
     // check if session exists
-    let session_exists = check_session_exists(&state_dir, &session_name)?;
+    let session_exists = check_session_exists_in_state(&state_dir, &session_name)?;
     if let Some(file_name) = session_exists {
         let file = state_dir.join(file_name);
         let mut file = OpenOptions::new().write(true).open(&file)?;
         file.write_all(session.as_bytes())?;
+
+        println!("Session saved");
         return Ok(());
     }
     let unique_id = uuid::Uuid::new_v4();
@@ -220,5 +233,6 @@ pub fn save_session() -> Result<()> {
     let mut file = OpenOptions::new().write(true).create(true).open(&file)?;
     file.write_all(session.as_bytes())?;
 
+    println!("Session saved");
     Ok(())
 }
