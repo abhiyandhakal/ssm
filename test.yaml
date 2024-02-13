@@ -1,0 +1,10 @@
+session-name: test
+start-dir: /path
+windows:
+  - index: 1
+    active: true
+    panes:
+      - working-dir: /path
+        command: command
+        dimensions: 50x40
+        active: true
