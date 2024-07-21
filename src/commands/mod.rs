@@ -1,7 +1,7 @@
 pub mod alias;
 pub mod session;
 
-use alias::set_alias;
+use alias::{list_aliases, set_alias};
 
 use crate::cli::Cli;
 
@@ -13,7 +13,8 @@ pub fn execute(cli: Cli) -> std::io::Result<()> {
         // Set alias
         set_alias(new_alias)?
     } else if cli.list_aliases {
-        //
+        // List aliases
+        list_aliases()?
     } else if cli.find {
         if cli.is_directory {
             //
