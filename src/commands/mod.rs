@@ -1,12 +1,17 @@
+pub mod alias;
 pub mod session;
+
+use alias::set_alias;
 
 use crate::cli::Cli;
 
+/// Execute the CLI
 pub fn execute(cli: Cli) -> std::io::Result<()> {
     if cli.save {
         // Save session
-    } else if let Some(_new_alias) = cli.set_alias {
+    } else if let Some(new_alias) = cli.set_alias {
         // Set alias
+        set_alias(new_alias)?
     } else if cli.list_aliases {
         //
     } else if cli.find {
