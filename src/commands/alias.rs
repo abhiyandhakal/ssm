@@ -24,6 +24,9 @@ pub fn set_alias(new_alias: String) -> std::io::Result<()> {
     insert_alias(alias, &mut alias_config_vec);
     save_alias_list_to_file(&alias_config_vec)?;
 
+    println!("{}: {}", new_alias, tmux_start_dir.to_string_lossy());
+    println!("Alias saved");
+
     Ok(())
 }
 
