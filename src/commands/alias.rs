@@ -1,4 +1,5 @@
 use crate::utils::{
+    command::execute_command,
     fs::save_alias_list_to_file,
     parse::{insert_alias, parse_alias_config},
     tmux::get_tmux_start_dir,
@@ -26,6 +27,18 @@ pub fn set_alias(new_alias: String) -> std::io::Result<()> {
 
     println!("{}: {}", new_alias, tmux_start_dir.to_string_lossy());
     println!("Alias saved");
+
+    // Also update the current session name
+    let current_session = execute_command("tmux display-message -p -F '#{session_name}'")?;
+    match execute_command(format!(
+        "tmux rename-session -t \"{current_session}\" \"{new_alias}\""
+    )) {
+        Err(e) => {
+            eprintln!("{}", e.to_string());
+            std::process::exit(1);
+        }
+        _ => {}
+    };
 
     Ok(())
 }
