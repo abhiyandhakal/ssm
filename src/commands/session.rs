@@ -1,19 +1,19 @@
-use std::{
-    io::{Error, Result},
-    path::PathBuf,
-};
-
 use crate::utils::{
     command::execute_command,
     parse::parse_alias_config,
     tmux::{get_all_sessions, is_in_tmux_session},
 };
+use std::{
+    io::{Error, Result},
+    path::PathBuf,
+};
 
 use super::alias::Alias;
 
 /// Open Session from path or alias
-/// TODO: Update the session name if there are symbols like '.' in the path
 pub fn open_session(path_or_alias: String) -> Result<()> {
+    let mut path_or_alias = path_or_alias;
+    let mut session_name = path_or_alias.clone();
     let is_in_tmux_session = is_in_tmux_session();
     let all_sessions = get_all_sessions()?;
     let alias_path_pair = browse_alias(path_or_alias.as_str());
@@ -27,10 +27,35 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
                     "Provided path doesn't exist.",
                 ));
             }
+            // Convert path to absolute path
+            match std::fs::canonicalize(&path_or_alias)?.to_str() {
+                Some(path) => path_or_alias = path.to_owned(),
+                None => {}
+            };
+
+            // Replace symbols that get transformed in tmux session name
+            let replacable = vec![":", "."];
+
+            session_name = path_or_alias
+                .chars()
+                .map(|c| {
+                    if replacable.contains(&c.to_string().as_str()) {
+                        "_".to_string()
+                    } else if c == '\\' {
+                        "\\\\".to_string()
+                    } else {
+                        c.to_string()
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("");
+
+            println!("{session_name}");
+
             false
         }
     };
-    let tmux_session_exists = match all_sessions.iter().find(|f| **f == path_or_alias) {
+    let tmux_session_exists = match all_sessions.iter().find(|f| **f == session_name) {
         Some(_) => true,
         None => false,
     };
@@ -43,17 +68,18 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
                     &alias_path_pair.clone().unwrap().alias,
                     &alias_path_pair.unwrap().path
                 ),
-                false => format!("tmux new -s \"{path_or_alias}\" -c \"{path_or_alias}\""),
+                false => format!("tmux new -s \"{session_name}\" -c \"{path_or_alias}\""),
             })?;
         } else {
-            execute_command(format!("tmux attach -t \"{path_or_alias}\""))?;
+            execute_command(format!("tmux attach -t \"{session_name}\""))?;
         }
     } else {
         if tmux_session_exists {
-            execute_command(format!("tmux switch-client -t \"{path_or_alias}\""))?;
+            execute_command(format!("tmux switch-client -t \"{session_name}\""))?;
         } else {
+            println!("{session_name}, {path_or_alias}");
             execute_command(match alias_found_saved {
-                false => format!("tmux new -s \"{path_or_alias}\" -c \"{path_or_alias}\" -d && tmux switch-client -t \"{path_or_alias}\""),
+                false => format!("tmux new -s \"{session_name}\" -c \"{path_or_alias}\" -d && tmux switch-client -t \"{session_name}\""),
                 true => {
                     let alias_path_pair = alias_path_pair.unwrap();
                     format!(
