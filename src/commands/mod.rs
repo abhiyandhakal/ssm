@@ -1,7 +1,9 @@
 pub mod alias;
+pub mod fzf;
 pub mod session;
 
 use alias::{list_aliases, set_alias};
+use fzf::find_alias;
 use session::open_session;
 
 use crate::cli::Cli;
@@ -23,6 +25,7 @@ pub fn execute(cli: Cli) -> std::io::Result<()> {
             //
         } else {
             // Find alias
+            find_alias()?
         }
     } else if let Some(path_or_alias) = cli.path_or_alias {
         open_session(path_or_alias)?;
