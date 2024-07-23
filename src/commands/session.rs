@@ -50,8 +50,6 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
                 .collect::<Vec<String>>()
                 .join("");
 
-            println!("{session_name}");
-
             false
         }
     };
@@ -77,7 +75,6 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
         if tmux_session_exists {
             execute_command(format!("tmux switch-client -t \"{session_name}\""))?;
         } else {
-            println!("{session_name}, {path_or_alias}");
             execute_command(match alias_found_saved {
                 false => format!("tmux new -s \"{session_name}\" -c \"{path_or_alias}\" -d && tmux switch-client -t \"{session_name}\""),
                 true => {

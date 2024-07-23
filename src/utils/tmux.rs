@@ -1,7 +1,6 @@
 use std::{
     io::{Error, Result},
     path::PathBuf,
-    process::Command,
 };
 
 use super::command::execute_command;
@@ -24,13 +23,7 @@ pub fn get_tmux_start_dir() -> std::io::Result<PathBuf> {
         ));
     }
 
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg("tmux display-message -p -F '#{pane_current_path}'")
-        .output()?;
-
-    let output = String::from_utf8_lossy(&output.stdout);
-    let output = output.trim();
+    let output = execute_command("tmux display-message -p -F '#{pane_current_path}'")?;
 
     if output.is_empty() {
         return Err(Error::new(
