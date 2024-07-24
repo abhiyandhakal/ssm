@@ -28,13 +28,12 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
                 ));
             }
             // Convert path to absolute path
-            match std::fs::canonicalize(&path_or_alias)?.to_str() {
-                Some(path) => path_or_alias = path.to_owned(),
-                None => {}
+            if let Some(path) = std::fs::canonicalize(&path_or_alias)?.to_str() {
+                path_or_alias = path.to_owned()
             };
 
             // Replace symbols that get transformed in tmux session name
-            let replacable = vec![":", "."];
+            let replacable = [":", "."];
 
             session_name = path_or_alias
                 .chars()
@@ -53,10 +52,7 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
             false
         }
     };
-    let tmux_session_exists = match all_sessions.iter().find(|f| **f == session_name) {
-        Some(_) => true,
-        None => false,
-    };
+    let tmux_session_exists = all_sessions.iter().find(|f| **f == session_name).is_some();
 
     if !is_in_tmux_session {
         if tmux_session_exists {
@@ -71,11 +67,10 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
         } else {
             execute_command(format!("tmux attach -t \"{session_name}\""))?;
         }
+    } else if tmux_session_exists {
+        execute_command(format!("tmux switch-client -t \"{session_name}\""))?;
     } else {
-        if tmux_session_exists {
-            execute_command(format!("tmux switch-client -t \"{session_name}\""))?;
-        } else {
-            execute_command(match alias_found_saved {
+        execute_command(match alias_found_saved {
                 false => format!("tmux new -s \"{session_name}\" -c \"{path_or_alias}\" -d && tmux switch-client -t \"{session_name}\""),
                 true => {
                     let alias_path_pair = alias_path_pair.unwrap();
@@ -87,7 +82,6 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
                     )
                 }
             })?;
-        }
     }
 
     Ok(())
@@ -99,7 +93,7 @@ fn browse_alias<T: AsRef<str>>(input: T) -> Option<Alias> {
     let alias_config_vec = match parse_alias_config() {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("{}", e.to_string());
+            eprintln!("{e}");
             std::process::exit(1);
         }
     };
@@ -110,7 +104,7 @@ fn browse_alias<T: AsRef<str>>(input: T) -> Option<Alias> {
             return Some(alias_obj.clone());
         }
 
-        if let Ok(path) = std::fs::canonicalize(&input) {
+        if let Ok(path) = std::fs::canonicalize(input) {
             let path = path.to_string_lossy().to_string();
             if alias_obj.path == path {
                 return Some(alias_obj.clone());

@@ -24,7 +24,7 @@ pub fn find_alias() -> Result<()> {
 /// Use fuzzy finder to select path of directory
 pub fn find_directory(show_hidden: bool) -> Result<()> {
     let find_command = find_command(show_hidden);
-    let path = run_fzf(format!("{find_command}"))?;
+    let path = run_fzf(find_command)?;
     open_session(path)?;
 
     Ok(())

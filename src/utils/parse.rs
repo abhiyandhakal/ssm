@@ -5,7 +5,7 @@ use std::{fs::read_to_string, io::Result};
 /// Parse alias configuration and return Value
 pub fn parse_alias_config() -> Result<Vec<Alias>> {
     let alias_file_path = get_alias_file()?;
-    let alias_file_content = read_to_string(&alias_file_path)?;
+    let alias_file_content = read_to_string(alias_file_path)?;
     let alias_value: Vec<Alias> = serde_json::from_str(alias_file_content.as_str())?;
     Ok(alias_value)
 }
