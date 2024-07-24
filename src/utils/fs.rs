@@ -40,7 +40,7 @@ pub fn save_alias_list_to_file(alias_list: &Vec<Alias>) -> Result<()> {
     let alias_list_str = serde_json::to_string(alias_list)?;
     let alias_file = get_alias_file()?;
 
-    std::fs::write(&alias_file, alias_list_str)?;
+    std::fs::write(alias_file, alias_list_str)?;
 
     Ok(())
 }

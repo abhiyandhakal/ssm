@@ -42,10 +42,7 @@ pub fn run_fzf<T: AsRef<str>>(command: T) -> Result<String> {
 
 /// Return the command required to find the directory
 pub fn find_command(show_hidden: bool) -> String {
-    let fd_exists = match Command::new("fd").output() {
-        Ok(_) => true,
-        Err(_) => false,
-    };
+    let fd_exists = Command::new("fd").output().is_ok();
 
     let home_dir = match home_dir() {
         Some(path) => path,
