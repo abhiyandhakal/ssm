@@ -21,19 +21,6 @@ ssm [PATH_OR_ALIAS] or ssm [OPTIONS]
 
 ### Options
 
-- `-l, --list-alias`: List all the aliases.
-- `-a, --set-alias <SET_ALIAS>`: Set alias to the active directory.
-- `--remove-alias <REMOVE_ALIAS>`: Remove alias. Usage: `ssm --remove-alias <ALIAS>`.
-- `--clear-alias`: Clear all the aliases.
-- `-s, --save`: Save the current session (Note: Save and restore functionality is not implemented yet).
-- `-n, --new-session`: Start a new session, don't restore.
-- `-f, --find`: Find (default is alias).
-- `-d, --dir`: Opt to path. Usage: `ssm -f -d` or `ssm --find --dir`.
-- `-H, --show-hidden`: Show hidden directories (use only with `--dir`). Usage: `ssm -f -d -H` or `ssm --find --dir --show-hidden`.
-- `-A, --all`: Opt to both aliases and directories. Usage: `ssm -f -A` or `ssm --find --all`.
-- `-h, --help`: Print help.
-- `-V, --version`: Print version.
-
 | Option           | Shorthand | Description                                                                                                 |
 | ---------------- | --------- | ----------------------------------------------------------------------------------------------------------- |
 | `--list-alias`   | `-l`      | List all the aliases                                                                                        |
