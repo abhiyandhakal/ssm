@@ -21,6 +21,14 @@ pub struct Cli {
     #[arg(short('a'), long("set-alias"))]
     pub set_alias: Option<String>,
 
+    /// Remove alias. Usage: ssm --remove-alias <ALIAS>
+    #[arg(long("remove-alias"))]
+    pub remove_alias: Option<String>,
+
+    /// Clear all the aliases.
+    #[arg(long("clear-alias"), action)]
+    pub clear_alias: bool,
+
     /// Save the current session
     #[arg(short, long, action)]
     pub save: bool,

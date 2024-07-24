@@ -1,6 +1,8 @@
+use std::io::Result;
+
 use crate::utils::{
     command::execute_command,
-    fs::save_alias_list_to_file,
+    fs::{get_alias_file, save_alias_list_to_file},
     parse::{insert_alias, parse_alias_config},
     tmux::get_tmux_start_dir,
 };
@@ -39,6 +41,39 @@ pub fn set_alias(new_alias: String) -> std::io::Result<()> {
         }
         _ => {}
     };
+
+    Ok(())
+}
+
+/// Remove provided input from the alias list
+pub fn remove_alias(alias: String) -> Result<()> {
+    let mut alias_list = parse_alias_config()?;
+    let mut alias_found = false;
+
+    for (i, alias_obj) in alias_list.clone().iter().enumerate() {
+        if alias_obj.alias == alias {
+            alias_list.remove(i);
+            println!("Alias \"{alias}\" removed.");
+            alias_found = true;
+        }
+    }
+
+    if alias_found {
+        save_alias_list_to_file(&alias_list)?;
+    } else {
+        // No alias removed
+        eprintln!("Alias \"{alias}\" not found");
+        std::process::exit(1);
+    }
+
+    Ok(())
+}
+
+/// Clear all the aliases
+pub fn clear_aliases() -> Result<()> {
+    let alias_file = get_alias_file()?;
+    std::fs::write(&alias_file, "[]")?;
+    println!("All aliases cleared");
 
     Ok(())
 }

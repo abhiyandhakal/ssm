@@ -2,7 +2,7 @@ pub mod alias;
 pub mod fzf;
 pub mod session;
 
-use alias::{list_aliases, set_alias};
+use alias::{clear_aliases, list_aliases, remove_alias, set_alias};
 use fzf::{find_alias, find_both, find_directory};
 use session::open_session;
 
@@ -15,9 +15,13 @@ pub fn execute(cli: Cli) -> std::io::Result<()> {
     } else if let Some(new_alias) = cli.set_alias {
         // Set alias
         set_alias(new_alias)?
+    } else if let Some(old_alias) = cli.remove_alias {
+        remove_alias(old_alias)?
     } else if cli.list_aliases {
         // List aliases
         list_aliases()?
+    } else if cli.clear_alias {
+        clear_aliases()?
     } else if cli.find {
         if cli.is_directory {
             find_directory(cli.show_hidden)?

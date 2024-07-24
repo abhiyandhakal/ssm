@@ -37,11 +37,6 @@ pub fn find_both(show_hidden: bool) -> Result<()> {
         .map(|f| format!("{}\t\t{}", f.alias, f.path))
         .collect::<Vec<_>>()
         .join("\n");
-    println!(
-        "{{{}; echo \"{}\";}}",
-        find_command(show_hidden),
-        alias_list
-    );
     let alias_or_path = run_fzf(format!(
         "({}; echo \"{}\";)",
         find_command(show_hidden),
