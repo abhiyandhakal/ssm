@@ -3,7 +3,7 @@ pub mod fzf;
 pub mod session;
 
 use alias::{list_aliases, set_alias};
-use fzf::find_alias;
+use fzf::{find_alias, find_directory};
 use session::open_session;
 
 use crate::cli::Cli;
@@ -20,7 +20,7 @@ pub fn execute(cli: Cli) -> std::io::Result<()> {
         list_aliases()?
     } else if cli.find {
         if cli.is_directory {
-            //
+            find_directory(cli.show_hidden)?
         } else if cli.is_both_alias_and_dir {
             //
         } else {
