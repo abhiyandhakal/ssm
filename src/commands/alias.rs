@@ -36,7 +36,7 @@ pub fn set_alias(new_alias: String) -> std::io::Result<()> {
         "tmux rename-session -t \"{current_session}\" \"{new_alias}\""
     )) {
         Err(e) => {
-            eprintln!("{}", e.to_string());
+            eprintln!("{e}");
             std::process::exit(1);
         }
         _ => {}

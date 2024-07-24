@@ -96,7 +96,7 @@ fn browse_alias<T: AsRef<str>>(input: T) -> Option<Alias> {
     let alias_config_vec = match parse_alias_config() {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("{}", e.to_string());
+            eprintln!("{e}");
             std::process::exit(1);
         }
     };
