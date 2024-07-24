@@ -72,7 +72,7 @@ pub fn remove_alias(alias: String) -> Result<()> {
 /// Clear all the aliases
 pub fn clear_aliases() -> Result<()> {
     let alias_file = get_alias_file()?;
-    std::fs::write(&alias_file, "[]")?;
+    std::fs::write(alias_file, "[]")?;
     println!("All aliases cleared");
 
     Ok(())
