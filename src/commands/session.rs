@@ -34,7 +34,7 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
             };
 
             // Replace symbols that get transformed in tmux session name
-            let replacable = vec![":", "."];
+            let replacable = [":", "."];
 
             session_name = path_or_alias
                 .chars()
