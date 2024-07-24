@@ -32,14 +32,11 @@ pub fn set_alias(new_alias: String) -> std::io::Result<()> {
 
     // Also update the current session name
     let current_session = execute_command("tmux display-message -p -F '#{session_name}'")?;
-    match execute_command(format!(
+    if let Err(e) = execute_command(format!(
         "tmux rename-session -t \"{current_session}\" \"{new_alias}\""
     )) {
-        Err(e) => {
-            eprintln!("{e}");
-            std::process::exit(1);
-        }
-        _ => {}
+        eprintln!("{e}");
+        std::process::exit(1);
     };
 
     Ok(())

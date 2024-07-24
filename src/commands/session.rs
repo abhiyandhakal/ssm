@@ -28,9 +28,8 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
                 ));
             }
             // Convert path to absolute path
-            match std::fs::canonicalize(&path_or_alias)?.to_str() {
-                Some(path) => path_or_alias = path.to_owned(),
-                None => {}
+            if let Some(path) = std::fs::canonicalize(&path_or_alias)?.to_str() {
+                path_or_alias = path.to_owned()
             };
 
             // Replace symbols that get transformed in tmux session name
