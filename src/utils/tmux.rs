@@ -32,7 +32,8 @@ pub fn get_tmux_start_dir() -> std::io::Result<PathBuf> {
         ));
     }
 
-    Ok(PathBuf::from(&output))
+    // Standardize the path
+    std::fs::canonicalize(&output)
 }
 
 /// Get a list of names of all the tmux sessions

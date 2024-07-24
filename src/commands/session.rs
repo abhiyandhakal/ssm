@@ -109,6 +109,13 @@ fn browse_alias<T: AsRef<str>>(input: T) -> Option<Alias> {
         if alias_obj.alias == input {
             return Some(alias_obj.clone());
         }
+
+        if let Ok(path) = std::fs::canonicalize(&input) {
+            let path = path.to_string_lossy().to_string();
+            if alias_obj.path == path {
+                return Some(alias_obj.clone());
+            }
+        }
     }
 
     None
