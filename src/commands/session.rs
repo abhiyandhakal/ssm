@@ -52,7 +52,7 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
             false
         }
     };
-    let tmux_session_exists = all_sessions.iter().find(|f| **f == session_name).is_some();
+    let tmux_session_exists = all_sessions.iter().any(|f| *f == session_name);
 
     if !is_in_tmux_session {
         if tmux_session_exists {
