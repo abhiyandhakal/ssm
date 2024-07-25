@@ -55,7 +55,7 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
     let tmux_session_exists = all_sessions.iter().any(|f| *f == session_name);
 
     if !is_in_tmux_session {
-        if tmux_session_exists {
+        if !tmux_session_exists {
             execute_command(match alias_found_saved {
                 true => format!(
                     "tmux new -s {} -c {}",
