@@ -1,20 +1,25 @@
 use std::{
-    io::{Error, Result},
-    process::Command,
+    io::{ErrorKind, Result},
+    process::{Command, Stdio},
 };
-
-use super::tmux::is_in_tmux_session;
 
 /// Execute the command passed as an argument and return the output
 pub fn execute_command<T: AsRef<str>>(command: T) -> Result<String> {
-    if !is_in_tmux_session() {
-        return Err(Error::new(
-            std::io::ErrorKind::NotFound,
-            "Not in a tmux session",
+    let command = command.as_ref();
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(command)
+        .stdin(Stdio::inherit())
+        .output()?;
+
+    // Check if error
+    if output.stderr.len() != 0 {
+        return Err(std::io::Error::new(
+            ErrorKind::UnexpectedEof,
+            String::from_utf8_lossy(&output.stderr),
         ));
     }
-    let command = command.as_ref();
-    let output = Command::new("sh").arg("-c").arg(command).output()?;
+
     let output = String::from_utf8_lossy(&output.stdout);
     let output = output.trim();
 
