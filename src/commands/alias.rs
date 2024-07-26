@@ -50,11 +50,19 @@ pub fn remove_alias(alias: String) -> Result<()> {
     let mut alias_list = parse_alias_config()?;
     let mut alias_found = false;
 
+    // Remove the saved alias
     for (i, alias_obj) in alias_list.clone().iter().enumerate() {
         if alias_obj.alias == alias {
+            // Rename the tmux session to the absolute path
+            execute_command(format!(
+                "tmux rename-session -t {} {}",
+                alias, alias_obj.path
+            ))?;
+
             alias_list.remove(i);
             println!("Alias \"{alias}\" removed.");
             alias_found = true;
+            break;
         }
     }
 
