@@ -15,14 +15,6 @@ pub fn is_in_tmux_session() -> bool {
 
 /// Get the start/active directory of the current Tmux session if exists
 pub fn get_tmux_start_dir() -> std::io::Result<PathBuf> {
-    // Check if we are inside a tmux session
-    if !is_in_tmux_session() {
-        return Err(Error::new(
-            std::io::ErrorKind::NotFound,
-            "Not in a tmux session",
-        ));
-    }
-
     let output = execute_command("tmux display-message -p -F '#{pane_current_path}'")?;
 
     if output.is_empty() {
