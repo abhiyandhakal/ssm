@@ -1,5 +1,5 @@
 use std::{
-    io::{ErrorKind, Result},
+    io::Result,
     process::{Command, Stdio},
 };
 
@@ -11,14 +11,6 @@ pub fn execute_command<T: AsRef<str>>(command: T) -> Result<String> {
         .arg(command)
         .stdin(Stdio::inherit())
         .output()?;
-
-    // Check if error
-    if output.stderr.len() != 0 {
-        return Err(std::io::Error::new(
-            ErrorKind::UnexpectedEof,
-            String::from_utf8_lossy(&output.stderr),
-        ));
-    }
 
     let output = String::from_utf8_lossy(&output.stdout);
     let output = output.trim();

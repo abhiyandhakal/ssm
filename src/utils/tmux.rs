@@ -30,14 +30,18 @@ pub fn get_tmux_start_dir() -> std::io::Result<PathBuf> {
 
 /// Get a list of names of all the tmux sessions
 pub fn get_all_sessions() -> Result<Vec<String>> {
-    Ok(execute_command("tmux ls")?
+    let output = execute_command("tmux ls")?;
+    if output.is_empty() {
+        return Ok(vec![]);
+    }
+    Ok(output
         .split('\n') // Split the new lines into vector
         .collect::<Vec<_>>()
         .iter()
         .map(|session| session.split(' ').collect::<Vec<_>>()[0]) // Get the names only (returns with a colon at the end)
         .collect::<Vec<_>>()
         .iter()
-        .map(|f| &f[..f.len() - 1]) // Removes the colon at the end
+        .map(|f| &f[..f.len().saturating_sub(1)]) // Removes the colon at the end
         .collect::<Vec<_>>()
         .iter()
         .map(|f| f.to_string()) // Converts to String type
