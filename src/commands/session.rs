@@ -13,12 +13,15 @@ use super::alias::Alias;
 /// Open Session from path or alias
 pub fn open_session(path_or_alias: String) -> Result<()> {
     let mut path_or_alias = path_or_alias;
-    let mut session_name = path_or_alias.clone();
+    let session_name;
     let is_in_tmux_session = is_in_tmux_session();
     let all_sessions = get_all_sessions()?;
     let alias_path_pair = browse_alias(path_or_alias.as_str());
-    let alias_found_saved = match alias_path_pair {
-        Some(_) => true,
+    let alias_found_saved = match &alias_path_pair {
+        Some(pair) => {
+            session_name = pair.alias.clone();
+            true
+        }
         None => {
             // Check if valid directory path if alias doesn't exist
             if !PathBuf::from(&path_or_alias).is_dir() {
