@@ -4,7 +4,7 @@ use crate::utils::{
     command::execute_command,
     fs::{get_alias_file, save_alias_list_to_file},
     parse::{insert_alias, parse_alias_config},
-    tmux::get_tmux_start_dir,
+    tmux::get_current_session_start_dir,
 };
 use prettytable::{format, Table};
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ pub struct Alias {
 }
 
 pub fn set_alias(new_alias: String) -> std::io::Result<()> {
-    let tmux_start_dir = get_tmux_start_dir()?;
+    let tmux_start_dir = get_current_session_start_dir()?;
 
     let alias = Alias {
         alias: new_alias.to_string(),

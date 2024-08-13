@@ -4,7 +4,7 @@ pub mod session;
 
 use alias::{clear_aliases, list_aliases, remove_alias, set_alias};
 use fzf::{find_alias, find_both, find_directory};
-use session::open_session;
+use session::{open_session, save_session};
 
 use crate::cli::Cli;
 
@@ -12,6 +12,7 @@ use crate::cli::Cli;
 pub fn execute(cli: Cli) -> std::io::Result<()> {
     if cli.save {
         // Save session
+        save_session()?
     } else if let Some(new_alias) = cli.set_alias {
         // Set alias
         set_alias(new_alias)?

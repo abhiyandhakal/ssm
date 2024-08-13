@@ -14,8 +14,8 @@ pub fn is_in_tmux_session() -> bool {
 }
 
 /// Get the start/active directory of the current Tmux session if exists
-pub fn get_tmux_start_dir() -> std::io::Result<PathBuf> {
-    let output = execute_command("tmux display-message -p -F '#{pane_current_path}'")?;
+pub fn get_current_session_start_dir() -> std::io::Result<PathBuf> {
+    let output = execute_command("tmux display-message -p -F '#{pane_start_path}'")?;
 
     if output.is_empty() {
         return Err(Error::new(
@@ -46,4 +46,25 @@ pub fn get_all_sessions() -> Result<Vec<String>> {
         .iter()
         .map(|f| f.to_string()) // Converts to String type
         .collect::<Vec<_>>())
+}
+
+/// Get the name of current session
+pub fn get_current_session() -> Result<String> {
+    if !is_in_tmux_session() {
+        return Err(Error::new(
+            std::io::ErrorKind::NotConnected,
+            "Not in a tmux session",
+        ));
+    }
+
+    let current_session = execute_command("tmux display-message -p -F '#{session_name}'")?;
+
+    if current_session.is_empty() {
+        return Err(Error::new(
+            std::io::ErrorKind::NotConnected,
+            "Tmux session not found",
+        ));
+    }
+
+    Ok(current_session)
 }
