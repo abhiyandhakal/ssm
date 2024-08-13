@@ -1,6 +1,9 @@
-use std::{io::Result, path::PathBuf};
+use dirs::{cache_dir, state_dir};
 
 use crate::commands::alias::Alias;
+use std::{io::Result, path::PathBuf};
+
+use super::session::{Session, Window};
 
 /// Get ssm's config directory
 pub fn get_config_dir() -> Result<PathBuf> {
@@ -22,6 +25,30 @@ pub fn get_config_dir() -> Result<PathBuf> {
     Ok(ssm_config_dir)
 }
 
+/// Get ssm's state directory
+pub fn get_state_dir() -> Result<PathBuf> {
+    let mut state_dir = state_dir();
+
+    if state_dir.is_none() {
+        state_dir = cache_dir();
+    }
+
+    if state_dir.is_none() {
+        return Err(std::io::Error::from(std::io::ErrorKind::NotFound));
+    }
+
+    let state_dir = state_dir.unwrap();
+
+    let ssm_state_dir = state_dir.join("ssm");
+
+    // Create ssm directory if doesn't exist
+    if !ssm_state_dir.is_dir() {
+        std::fs::create_dir_all(&ssm_state_dir)?;
+    }
+
+    Ok(ssm_state_dir)
+}
+
 /// Get path of the file where aliases are saved
 pub fn get_alias_file() -> Result<PathBuf> {
     let config_dir = get_config_dir()?;
@@ -41,6 +68,16 @@ pub fn save_alias_list_to_file(alias_list: &Vec<Alias>) -> Result<()> {
     let alias_file = get_alias_file()?;
 
     std::fs::write(alias_file, alias_list_str)?;
+
+    Ok(())
+}
+
+/// Save session to the file provided
+pub fn save_session_to_file(windows: Session, path: String) -> Result<()> {
+    let windows = serde_json::to_string(&windows)?;
+    let path = get_state_dir()?.join(path);
+
+    std::fs::write(path, windows)?;
 
     Ok(())
 }

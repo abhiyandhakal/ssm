@@ -1,14 +1,19 @@
+use uuid::Uuid;
+
 use crate::utils::{
     command::execute_command,
-    parse::parse_alias_config,
-    tmux::{get_all_sessions, is_in_tmux_session},
+    fs::save_session_to_file,
+    parse::parse_sessions_in_files,
+    session::{get_windows, Session},
+    tmux::{
+        get_all_sessions, get_current_session, get_current_session_start_dir, is_in_tmux_session,
+    },
+    utils::browse_alias,
 };
 use std::{
     io::{Error, Result},
     path::PathBuf,
 };
-
-use super::alias::Alias;
 
 /// Open Session from path or alias
 pub fn open_session(path_or_alias: String) -> Result<()> {
@@ -90,30 +95,35 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
     Ok(())
 }
 
-/// Search if the input exists in alias list. If exists, return the alias-path pair
-fn browse_alias<T: AsRef<str>>(input: T) -> Option<Alias> {
-    let input = input.as_ref();
-    let alias_config_vec = match parse_alias_config() {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("{e}");
-            std::process::exit(1);
-        }
+/// Save the tmux session state
+pub fn save_session() -> Result<()> {
+    let current_session = get_current_session()?;
+    let windows = get_windows(&current_session)?;
+    let session: Session = Session {
+        windows,
+        start_dir: get_current_session_start_dir()?
+            .to_string_lossy()
+            .to_string(),
+        name: get_current_session()?,
     };
+    let sessions_saved_with_filename = parse_sessions_in_files()?;
 
-    // Return the alias object if an alias matches
-    for alias_obj in &alias_config_vec {
-        if alias_obj.alias == input {
-            return Some(alias_obj.clone());
-        }
+    let mut saved_before_file = None;
 
-        if let Ok(path) = std::fs::canonicalize(input) {
-            let path = path.to_string_lossy().to_string();
-            if alias_obj.path == path {
-                return Some(alias_obj.clone());
-            }
+    for (filename, session) in sessions_saved_with_filename {
+        if session.name == current_session {
+            saved_before_file = Some(filename);
+            break;
         }
     }
 
-    None
+    let filename = if let Some(saved_before_path) = saved_before_file {
+        saved_before_path
+    } else {
+        Uuid::new_v4().to_string()
+    };
+
+    save_session_to_file(session, filename)?;
+
+    Ok(())
 }
