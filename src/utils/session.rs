@@ -103,23 +103,3 @@ pub fn get_panes(session_name: &String, window_index: i32) -> Result<Vec<Pane>> 
 
     Ok(panes)
 }
-
-// /// To save the session, get a new file name if not saved previously, or return a previously saved file
-// pub fn get_session_save_filename() -> Result<PathBuf> {
-//     let state_dir = get_state_dir()?;
-//     let files_read = std::fs::read_dir(state_dir)?;
-//     let mut files = vec![];
-//     for file in files_read {
-//         let file = file?.path();
-//         if file.is_file() {
-//             files.push(file)
-//         }
-//     }
-//
-//     for file in files {
-//         let file_content = read_to_string(file)?;
-//         let file_content = serde_json::from_str(&file_content);
-//     }
-//
-//     Ok(PathBuf::new())
-// }
