@@ -120,7 +120,7 @@ pub fn save_session() -> Result<()> {
     let filename = if let Some(saved_before_path) = saved_before_file {
         saved_before_path
     } else {
-        Uuid::new_v4().to_string()
+        format!("{}.json", Uuid::new_v4())
     };
 
     save_session_to_file(session, filename)?;
