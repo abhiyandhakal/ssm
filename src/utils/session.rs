@@ -72,9 +72,9 @@ pub fn get_panes(session_name: &String, window_index: i32) -> Result<Vec<Pane>> 
     /*
        List panes of the provided session_name and window_index
        Format:
-       [pane_index] [width]x[height] [pane_PID] [current_command] [current_path] [is_pane_active]
+       [pane_index] [width] [height] [window_width] [window_height] [pane_PID] [current_path] [is_pane_active]
     */
-    let input_str = format!("tmux list-panes -F '#{{pane_index}} #{{pane_width}}x#{{pane_height}} #{{pane_pid}} #{{pane_current_command}} #{{pane_current_path}} #{{?pane_active,(active),}}' -t {session_name}:{window_index}");
+    let input_str = format!("tmux list-panes -F '#{{pane_index}} #{{pane_width}} #{{pane_height}} #{{window_width}} #{{window_height}} #{{pane_pid}} #{{pane_current_path}} #{{?pane_active,(active),}}' -t {session_name}:{window_index}");
     let output = execute_command(input_str)?;
     let mut panes: Vec<Pane> = vec![];
 
@@ -86,8 +86,16 @@ pub fn get_panes(session_name: &String, window_index: i32) -> Result<Vec<Pane>> 
             eprintln!("Failed to parse pane index");
             std::process::exit(1);
         });
+
+        // let pane size in percentage (format: [width_percent]x[height_percent])
+        let width_percent: f32 =
+            line[1].parse::<f32>().unwrap_or(1.0) / line[3].parse::<f32>().unwrap_or(1.0) * 100.0;
+        let height_percent =
+            line[2].parse::<f32>().unwrap_or(1.0) / line[4].parse::<f32>().unwrap_or(1.0) * 100.0;
+        let size = format!("{width_percent}x{height_percent}");
+
         // let command
-        let command_pid = execute_command(format!("ps -o pid= --ppid {}", line[2]))?;
+        let command_pid = execute_command(format!("ps -o pid= --ppid {}", line[5]))?;
         let command = execute_command(format!("ps -o command -p {command_pid}"))?;
         let command = command.split('\n').collect::<Vec<_>>();
         let command = command[command.len() - 1];
@@ -95,9 +103,9 @@ pub fn get_panes(session_name: &String, window_index: i32) -> Result<Vec<Pane>> 
         panes.push(Pane {
             index,
             active: line.last().is_some_and(|f| f == &"(active)"),
-            size: line[1].to_string(),
+            size,
             command: command.to_string(),
-            working_dir: line[4].to_string(),
+            working_dir: line[line.len() - 2].to_string(),
         })
     }
 
