@@ -33,6 +33,10 @@ pub struct Cli {
     #[arg(short, long, action)]
     pub save: bool,
 
+    /// Restore the saved session
+    #[arg(short, long, action)]
+    pub restore: bool,
+
     /// Start a new session, don't restore
     #[arg(short, long("new-session"), action)]
     pub new_session: bool,

@@ -1,9 +1,13 @@
 use serde::{Deserialize, Serialize};
-use std::{fs::read_to_string, io::Result, path::PathBuf};
+use std::{
+    fs::read_to_string,
+    io::{Error, Result},
+    path::PathBuf,
+};
 
 use crate::utils::command::execute_command;
 
-use super::{fs::get_state_dir, utils::remove_first_and_last};
+use super::{fs::get_state_dir, parse::parse_sessions_in_files, utils::remove_first_and_last};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Point {
@@ -110,4 +114,93 @@ pub fn get_panes(session_name: &String, window_index: i32) -> Result<Vec<Pane>> 
     }
 
     Ok(panes)
+}
+
+/// Restores the session if saved.
+/// *Note:* Create the session first, and then pass the session name as an argument.
+pub fn restore_session(session_name: &String) -> Result<()> {
+    let parsed_sessions_saved = parse_sessions_in_files()?;
+    let mut session_saved = None;
+
+    for (_, session_saved_in_file) in parsed_sessions_saved {
+        if session_name == &session_saved_in_file.name {
+            session_saved = Some(session_saved_in_file);
+            break;
+        }
+    }
+
+    if session_saved.is_none() {
+        return Err(Error::new(
+            std::io::ErrorKind::NotFound,
+            "Session hasn't been saved to restore.",
+        ));
+    }
+
+    let session_saved = session_saved.unwrap();
+    println!("{:#?}", session_saved);
+
+    for window in session_saved.windows {
+        // Create window
+        execute_command(format!(
+            "tmux new-window -t {}:{}",
+            session_name, window.index
+        ))?;
+
+        // Set active window
+        if window.active {
+            execute_command(format!(
+                "tmux select-window {}:{}",
+                session_name, window.index
+            ))?;
+        }
+
+        // Create panes in the specific windows
+        // TODO: Restore sizes and orientation of the panes
+        let mut pane_count = 0;
+        let mut start_index_saved_difference = 0;
+        for pane in &window.panes {
+            execute_command(format!(
+                "tmux split-window -t {}:{}",
+                session_name, window.index
+            ))?;
+
+            if pane_count == 0 {
+                let pane_indices = execute_command(format!(
+                    "tmux list-panes -t {}:{}",
+                    session_name, window.index
+                ))?
+                .split('\n')
+                .map(|f| f.trim().parse::<i32>().unwrap_or(0))
+                .collect::<Vec<_>>();
+
+                // Make sure the panes to target have correct indices by
+                // gauging the difference between the saved and the created panes
+                if pane_indices.len() != 0 {
+                    start_index_saved_difference = pane_indices[0] - pane.index;
+                }
+                pane_count += 1;
+            }
+
+            // Set active pane
+            if pane.active {
+                execute_command(format!(
+                    "tmux select-pane -t {}:{}.{}",
+                    session_name, window.index, pane.index
+                ))?;
+            }
+        }
+
+        // Restore commands in the panes
+        for pane in window.panes {
+            execute_command(format!(
+                "tmux send-keys -t {}:{}.{} '{}' C-m",
+                session_name,
+                window.index,
+                pane.index + start_index_saved_difference,
+                pane.command
+            ))?;
+        }
+    }
+
+    Ok(())
 }

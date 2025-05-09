@@ -25,15 +25,15 @@ pub fn execute(cli: Cli) -> std::io::Result<()> {
         clear_aliases()?
     } else if cli.find {
         if cli.is_directory {
-            find_directory(cli.show_hidden)?
+            find_directory(cli.show_hidden, cli.restore)?
         } else if cli.is_both_alias_and_dir {
-            find_both(cli.show_hidden)?
+            find_both(cli.show_hidden, cli.restore)?
         } else {
             // Find alias
-            find_alias()?
+            find_alias(cli.restore)?
         }
     } else if let Some(path_or_alias) = cli.path_or_alias {
-        open_session(path_or_alias)?;
+        open_session(path_or_alias, cli.restore)?;
     }
 
     Ok(())

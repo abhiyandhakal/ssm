@@ -4,7 +4,7 @@ use crate::utils::{
     command::execute_command,
     fs::save_session_to_file,
     parse::parse_sessions_in_files,
-    session::{get_windows, Session},
+    session::{get_windows, restore_session, Session},
     tmux::{
         get_all_sessions, get_current_session, get_current_session_start_dir, is_in_tmux_session,
     },
@@ -16,7 +16,7 @@ use std::{
 };
 
 /// Open Session from path or alias
-pub fn open_session(path_or_alias: String) -> Result<()> {
+pub fn open_session(path_or_alias: String, is_restore: bool) -> Result<()> {
     let mut path_or_alias = path_or_alias;
     let mut session_name = path_or_alias.clone();
     let is_in_tmux_session = is_in_tmux_session();
@@ -89,6 +89,13 @@ pub fn open_session(path_or_alias: String) -> Result<()> {
             })?;
     }
 
+    // Restore session if saved before
+    if is_restore {
+        if let Err(e) = restore_session(&session_name) {
+            eprintln!("{e}")
+        }
+    }
+
     Ok(())
 }
 
@@ -121,6 +128,8 @@ pub fn save_session() -> Result<()> {
     };
 
     save_session_to_file(session, filename)?;
+
+    println!("Session saved.");
 
     Ok(())
 }
